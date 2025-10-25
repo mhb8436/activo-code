@@ -205,7 +205,14 @@ export class OpenAIContentGenerator implements ContentGenerator {
         jsonStr = codeBlockMatch[1].trim();
       }
 
-      // Method 3: If content starts with ✦ or other decoration, try to find JSON object
+      // Method 3: Remove line numbers (common in Qwen output)
+      // Pattern: "   1 {" or "1 {" at start of lines
+      jsonStr = jsonStr.replace(/^\s*\d+\s+/gm, '');
+
+      // Method 4: If content starts with ✦ or other decoration, remove it
+      jsonStr = jsonStr.replace(/^[✦\s]+/, '');
+
+      // Method 5: Extract JSON object from content
       if (jsonStr.includes('{') && jsonStr.includes('}')) {
         const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
