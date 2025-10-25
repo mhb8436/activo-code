@@ -191,11 +191,26 @@ export class OpenAIContentGenerator implements ContentGenerator {
     }
 
     try {
-      // Remove <tool_call> tags if present
       let jsonStr = content.trim();
+
+      // Method 1: Remove <tool_call> tags if present
       const toolCallMatch = jsonStr.match(/<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/);
       if (toolCallMatch) {
         jsonStr = toolCallMatch[1].trim();
+      }
+
+      // Method 2: Extract JSON from markdown code blocks
+      const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1].trim();
+      }
+
+      // Method 3: If content starts with ✦ or other decoration, try to find JSON object
+      if (jsonStr.includes('{') && jsonStr.includes('}')) {
+        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[0];
+        }
       }
 
       // Try to parse as JSON
