@@ -1,6 +1,6 @@
 # Activo Code
 
-![Activo Code Screenshot](./docs/assets/ollama-screenshot.png)
+![Activo Code Screenshot](./docs/assets/activo-screenshot.png)
 
 Activo Code는 프라이버시를 중요시하는 명령줄 AI 워크플로우 도구입니다. [**Qwen Code**](https://github.com/QwenLM/qwen-code)에서 포크되어 로컬에서 호스팅되는 [Ollama](https://ollama.com) 모델과 함께 작동하도록 설계되었으며, 향상된 프라이버시와 데이터 주권을 제공합니다. 이 도구를 사용하면 코드와 데이터를 완전히 통제하면서 AI 지원 개발의 강력함을 누릴 수 있습니다.
 
