@@ -9,7 +9,6 @@ import { LoadedSettings, SettingScope } from '../../config/settings.js';
 import {
   AuthType,
   Config,
-  clearCachedCredentialFile,
   getErrorMessage,
 } from '@tcsenpai/ollama-code';
 import { runExitCleanup } from '../../utils/cleanup.js';
@@ -54,9 +53,9 @@ export const useAuthCommand = (
   const handleAuthSelect = useCallback(
     async (authType: AuthType | undefined, scope: SettingScope) => {
       if (authType) {
-        await clearCachedCredentialFile();
+        // OAuth credential clearing removed
         settings.setValue(scope, 'selectedAuthType', authType);
-        if (authType === AuthType.LOGIN_WITH_GOOGLE && config.getNoBrowser()) {
+        if (false && config.getNoBrowser()) {
           runExitCleanup();
           console.log(
             `

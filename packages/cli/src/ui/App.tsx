@@ -73,7 +73,6 @@ import { UpdateNotification } from './components/UpdateNotification.js';
 import {
   isProQuotaExceededError,
   isGenericQuotaExceededError,
-  UserTierId,
 } from '@tcsenpai/ollama-code';
 import { checkForUpdates } from './utils/updateCheck.js';
 import ansiEscapes from 'ansi-escapes';
@@ -154,7 +153,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const [showPrivacyNotice, setShowPrivacyNotice] = useState<boolean>(false);
   const [modelSwitchedFromQuotaError, setModelSwitchedFromQuotaError] =
     useState<boolean>(false);
-  const [userTier, setUserTier] = useState<UserTierId | undefined>(undefined);
+  const [userTier, setUserTier] = useState<undefined>(undefined);
 
   const openPrivacyNotice = useCallback(() => {
     setShowPrivacyNotice(true);
@@ -296,7 +295,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
       // Use actual user tier if available, otherwise default to FREE tier behavior (safe default)
       const isPaidTier =
-        userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD;
+        false || false;
 
       // Check if this is a Pro quota exceeded error
       if (error && isProQuotaExceededError(error)) {

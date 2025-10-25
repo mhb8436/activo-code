@@ -36,7 +36,6 @@ import {
   sessionId,
   logUserPrompt,
   AuthType,
-  getOauthClient,
 } from '@tcsenpai/ollama-code';
 import { validateAuthMethod } from './config/auth.js';
 import { setMaxSizedBoxDebugging } from './ui/components/shared/MaxSizedBox.js';
@@ -132,7 +131,7 @@ export async function main() {
       settings.setValue(
         SettingScope.User,
         'selectedAuthType',
-        AuthType.CLOUD_SHELL,
+        AuthType.USE_OPENAI,
       );
     }
   }
@@ -182,11 +181,11 @@ export async function main() {
   }
 
   if (
-    settings.merged.selectedAuthType === AuthType.LOGIN_WITH_GOOGLE &&
+    settings.merged.selectedAuthType === AuthType.USE_OPENAI &&
     config.getNoBrowser()
   ) {
     // Do oauth before app renders to make copying the link possible.
-    await getOauthClient(settings.merged.selectedAuthType, config);
+    // OAuth removed for Ollama
   }
 
   let input = config.getQuestion();
@@ -337,7 +336,7 @@ async function validateNonInterActiveAuth(
     if (process.env.OLLAMA_API_KEY !== undefined || process.env.OLLAMA_BASE_URL || process.env.OPENAI_API_KEY || process.env.OPENAI_BASE_URL) {
       selectedAuthType = AuthType.USE_OPENAI;
     } else {
-      selectedAuthType = AuthType.USE_GEMINI;
+      selectedAuthType = AuthType.USE_OPENAI;
     }
   }
   const err = validateAuthMethod(selectedAuthType);

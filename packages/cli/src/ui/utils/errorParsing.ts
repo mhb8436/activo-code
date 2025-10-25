@@ -6,7 +6,6 @@
 
 import {
   AuthType,
-  UserTierId,
   DEFAULT_GEMINI_FLASH_MODEL,
   DEFAULT_GEMINI_MODEL,
   isProQuotaExceededError,
@@ -57,51 +56,18 @@ const getRateLimitErrorMessageDefault = (
 function getRateLimitMessage(
   authType?: AuthType,
   error?: unknown,
-  userTier?: UserTierId,
+  userTier?: undefined,
   currentModel?: string,
   fallbackModel?: string,
 ): string {
-  switch (authType) {
-    case AuthType.LOGIN_WITH_GOOGLE: {
-      // Determine if user is on a paid tier (Legacy or Standard) - default to FREE if not specified
-      const isPaidTier =
-        userTier === UserTierId.LEGACY || userTier === UserTierId.STANDARD;
-
-      if (isProQuotaExceededError(error)) {
-        return isPaidTier
-          ? getRateLimitErrorMessageGoogleProQuotaPaid(
-              currentModel || DEFAULT_GEMINI_MODEL,
-              fallbackModel,
-            )
-          : getRateLimitErrorMessageGoogleProQuotaFree(
-              currentModel || DEFAULT_GEMINI_MODEL,
-              fallbackModel,
-            );
-      } else if (isGenericQuotaExceededError(error)) {
-        return isPaidTier
-          ? getRateLimitErrorMessageGoogleGenericQuotaPaid(
-              currentModel || DEFAULT_GEMINI_MODEL,
-            )
-          : getRateLimitErrorMessageGoogleGenericQuotaFree();
-      } else {
-        return isPaidTier
-          ? getRateLimitErrorMessageGooglePaid(fallbackModel)
-          : getRateLimitErrorMessageGoogleFree(fallbackModel);
-      }
-    }
-    case AuthType.USE_GEMINI:
-      return RATE_LIMIT_ERROR_MESSAGE_USE_GEMINI;
-    case AuthType.USE_VERTEX_AI:
-      return RATE_LIMIT_ERROR_MESSAGE_VERTEX;
-    default:
-      return getRateLimitErrorMessageDefault(fallbackModel);
-  }
+  // For Ollama/OpenAI, use default rate limit message
+  return getRateLimitErrorMessageDefault(fallbackModel);
 }
 
 export function parseAndFormatApiError(
   error: unknown,
   authType?: AuthType,
-  userTier?: UserTierId,
+  userTier?: undefined,
   currentModel?: string,
   fallbackModel?: string,
 ): string {

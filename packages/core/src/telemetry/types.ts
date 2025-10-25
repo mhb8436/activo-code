@@ -55,9 +55,10 @@ export class StartSessionEvent {
 
     let useGemini = false;
     let useVertex = false;
+    // Removed Google-specific auth types
     if (generatorConfig && generatorConfig.authType) {
-      useGemini = generatorConfig.authType === AuthType.USE_GEMINI;
-      useVertex = generatorConfig.authType === AuthType.USE_VERTEX_AI;
+      useGemini = false;
+      useVertex = false;
     }
 
     this['event.name'] = 'cli_config';
