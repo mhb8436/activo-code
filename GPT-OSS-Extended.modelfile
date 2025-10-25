@@ -1,0 +1,13 @@
+# Extended context version of GPT-OSS:20b
+FROM gpt-oss:20b
+
+# Increase context window from 4096 to 16384
+PARAMETER num_ctx 16384
+
+# Optimize for tool calling
+PARAMETER temperature 0.2
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+
+# Prevent repetition
+PARAMETER repeat_penalty 1.1
