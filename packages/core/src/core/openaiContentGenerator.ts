@@ -212,7 +212,10 @@ export class OpenAIContentGenerator implements ContentGenerator {
       // Method 4: If content starts with ✦ or other decoration, remove it
       jsonStr = jsonStr.replace(/^[✦\s]+/, '');
 
-      // Method 5: Extract JSON object from content
+      // Method 5: Remove JSON comments (// ...) which are invalid in JSON
+      jsonStr = jsonStr.replace(/\/\/[^\n]*/g, '');
+
+      // Method 6: Extract JSON object from content
       if (jsonStr.includes('{') && jsonStr.includes('}')) {
         const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -225,6 +228,11 @@ export class OpenAIContentGenerator implements ContentGenerator {
 
       // Check if it's a tool call (has name and arguments)
       if (parsed && typeof parsed === 'object' && parsed.name) {
+        // Ignore template/placeholder tool calls
+        if (parsed.name.includes('<') || parsed.name.includes('function-name') || parsed.name === 'tool_name') {
+          return null; // This is a template, not a real tool call
+        }
+
         return [{
           id: `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           type: 'function',
