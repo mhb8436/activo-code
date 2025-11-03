@@ -265,12 +265,36 @@ Your core function is efficient and safe assistance. Balance extreme conciseness
     }
   }
 
+  const projectContext = getProjectContext();
+
   const memorySuffix =
     userMemory && userMemory.trim().length > 0
       ? `\n\n---\n\n${userMemory.trim()}`
       : '';
 
-  return `${basePrompt}${memorySuffix}`;
+  return `${basePrompt}\n\n${projectContext}${memorySuffix}`;
+}
+
+/**
+ * Get the project information to inject into the system prompt
+ */
+export function getProjectContext(): string {
+  const targetDir = process.cwd();
+  return `
+# Project Context
+
+**IMPORTANT: Current Project Root Directory**
+\`${targetDir}\`
+
+When constructing absolute paths for tools like '${ReadFileTool.Name}' or '${WriteFileTool.Name}', you MUST use this as the base directory.
+
+For example:
+- To read package.json: use absolute_path \`${targetDir}/package.json\`
+- To read src/index.ts: use absolute_path \`${targetDir}/src/index.ts\`
+- To read any file: \`${targetDir}/<relative-path-from-root>\`
+
+Never use placeholder paths like '/path/to/project' or '/path/to/your/file.txt'. Always use the actual project root shown above.
+`.trim();
 }
 
 /**

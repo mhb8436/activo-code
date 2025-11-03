@@ -172,6 +172,52 @@ export class OpenAIContentGenerator implements ContentGenerator {
   }
 
   /**
+   * Check if content looks like a template/placeholder tool call that should be ignored
+   * Examples of templates to filter:
+   * - {"name": "<function-name>", "arguments": {...}}
+   * - {"name": "tool_name", "arguments": {// arguments as a JSON object}}
+   */
+  private looksLikeTemplateToolCall(content: string): boolean {
+    if (!content || typeof content !== 'string') {
+      return false;
+    }
+
+    const trimmed = content.trim();
+
+    // Check for common template patterns
+    if (trimmed.includes('<function-name>') ||
+        trimmed.includes('tool_name') ||
+        trimmed.includes('// arguments as a JSON object')) {
+      return true;
+    }
+
+    // Try to parse as JSON and check for template names
+    try {
+      // Remove line numbers and decorations like we do in parseOllamaToolCall
+      let jsonStr = trimmed;
+      jsonStr = jsonStr.replace(/^\s*\d+\s+/gm, '');
+      jsonStr = jsonStr.replace(/^[✦\s]+/, '');
+      jsonStr = jsonStr.replace(/\/\/[^\n]*/g, '');
+
+      if (jsonStr.includes('{') && jsonStr.includes('}')) {
+        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed && parsed.name) {
+            return parsed.name.includes('<') ||
+                   parsed.name.includes('function-name') ||
+                   parsed.name === 'tool_name';
+          }
+        }
+      }
+    } catch (e) {
+      // Not valid JSON, continue
+    }
+
+    return false;
+  }
+
+  /**
    * Parse Ollama's tool call response from content field
    * Ollama returns tool calls as JSON in the content field, not in tool_calls array
    *
@@ -1238,11 +1284,17 @@ export class OpenAIContentGenerator implements ContentGenerator {
 
     // Handle text content (but skip if it was a tool call)
     if (choice.message.content && !parsedToolCalls) {
-      // Filter out thinking tags
-      const cleanedContent = this.stripThinkingTags(choice.message.content);
-      if (cleanedContent.trim()) {
-        parts.push({ text: cleanedContent });
+      // Check if content looks like a template tool call that was filtered out
+      const isTemplateToolCall = this.looksLikeTemplateToolCall(choice.message.content);
+
+      if (!isTemplateToolCall) {
+        // Filter out thinking tags
+        const cleanedContent = this.stripThinkingTags(choice.message.content);
+        if (cleanedContent.trim()) {
+          parts.push({ text: cleanedContent });
+        }
       }
+      // If it's a template tool call, skip it entirely (don't add to parts)
     }
 
     // Handle tool calls from OpenAI format
@@ -1371,6 +1423,10 @@ export class OpenAIContentGenerator implements ContentGenerator {
           // If we found a tool call in content, clear the text parts we added earlier
           if (parsedToolCalls) {
             parts.length = 0; // Clear text parts since this is actually a tool call
+          }
+          // If content looks like a template tool call, also clear the parts
+          else if (this.looksLikeTemplateToolCall(this.streamingContent)) {
+            parts.length = 0; // Clear template tool call from output
           }
         }
 
