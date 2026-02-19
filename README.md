@@ -1,199 +1,143 @@
-# Activo Code
+# ACTIVO
 
-![Activo Code Screenshot](./docs/assets/activo-screenshot.png)
+AI 기반 코드 품질 분석 CLI (Ollama)
 
-Activo Code는 프라이버시를 중요시하는 명령줄 AI 워크플로우 도구입니다. [**Qwen Code**](https://github.com/QwenLM/qwen-code)에서 포크되어 로컬에서 호스팅되는 [Ollama](https://ollama.com) 모델과 함께 작동하도록 설계되었으며, 향상된 프라이버시와 데이터 주권을 제공합니다. 이 도구를 사용하면 코드와 데이터를 완전히 통제하면서 AI 지원 개발의 강력함을 누릴 수 있습니다.
+![Demo](demo.gif)
 
-## 🔒 프라이버시 & 데이터 주권 우선
+Ollama를 활용한 대화형 코드 분석 에이전트. Java, TypeScript, Python, SQL, CSS 등 다국어·멀티스택 프로젝트를 자동 감지하고 품질 이슈를 분석합니다.
 
-**여러분의 코드는 절대 외부로 전송되지 않습니다.** 클라우드 기반 AI 도구와 달리, Activo Code는 모든 것을 로컬 Ollama 서버를 통해 처리하여 다음을 보장합니다:
-
-- **완전한 프라이버시**: 외부 서비스로의 데이터 전송 없음
-- **데이터 주권**: 모델과 처리에 대한 완전한 제어
-- **오프라인 기능**: 모델 다운로드 후 인터넷 연결 없이 작업 가능
-- **엔터프라이즈 준비**: 민감한 코드베이스와 에어갭 환경에 완벽
-
-## ⚠️ 품질 고려사항
-
-**중요:** 이 도구는 로컬 Ollama 모델을 사용하므로 클라우드 기반 모델과 다른 성능을 보일 수 있습니다:
-
-- **작은 모델** (7B-14B 파라미터)은 대형 클라우드 모델보다 정확도가 낮을 수 있습니다
-- **응답 품질**은 선택한 모델과 하드웨어에 따라 크게 달라집니다
-- **복잡한 추론 작업**은 최적의 결과를 위해 더 큰 모델(70B+)이 필요할 수 있습니다
-- **사용 사례 고려**: 특정 워크플로우에서 모델 적합성을 테스트하세요
+- **Tool Calling**: LLM이 상황에 맞는 도구를 직접 호출
+- **MCP 지원**: Model Context Protocol 연동
+- **React Ink TUI**: 터미널용 대화형 UI
 
 ## 주요 기능
 
-- **코드 이해 & 편집** - 기존 컨텍스트 윈도우 제한을 넘어 대규모 코드베이스 쿼리 및 편집
-- **워크플로우 자동화** - 풀 리퀘스트 처리 및 복잡한 리베이스와 같은 운영 작업 자동화
-- **로컬 모델 지원** - Ollama 호환 모든 모델 지원 (Qwen, Llama, CodeLlama 등)
-- **프라이버시 우선 아키텍처** - 모든 처리가 사용자의 인프라에서 발생
+| 카테고리 | 도구 | 설명 |
+|----------|------|------|
+| **전체 분석** | `analyze_all` | 디렉토리 전체 자동 감지 및 분석 (권장) |
+| **코드 분석** | Java, JS/TS, Python, React, Vue | AST, 순환 복잡도, 프레임워크 패턴 |
+| **SQL/DB** | `sql_check`, `mybatis_check` | SQL Injection, N+1, 동적 SQL 분석 |
+| **웹** | `css_check`, `html_check` | !important, 접근성(a11y), SEO 검사 |
+| **의존성** | `dependency_check` | npm/Maven/Gradle 보안 취약점 검출 |
+| **표준/RAG** | `import_hwp_standards`, `check_quality_rag` | HWP/PDF → 마크다운, RAG 기반 품질 검사 |
 
-## 빠른 시작
-
-### 사전 요구사항
-
-1. **Node.js**: [Node.js 버전 20](https://nodejs.org/en/download) 이상 설치 필요
-2. **Ollama 서버**: 선호하는 모델로 [Ollama](https://ollama.com) 설치 및 실행
-
-### 설치
+## 설치
 
 ```bash
-npm install -g activo-code
-activo-code --version
+npm install -g activo
 ```
 
-어디서든 실행:
+## 요구사항
+
+- Node.js 18+
+- [Ollama](https://ollama.ai) 실행 중
+- 모델: `ollama pull mistral:latest` (또는 `qwen2.5:7b` 등)
+
+## 사용법
 
 ```bash
-activo-code
+# 대화형 모드
+activo
+
+# 프롬프트와 함께 실행 (권장)
+activo "src 폴더 품질 분석해줘"
+
+# 특정 모델 사용
+activo --model qwen2.5:7b "Java 코드 복잡도 점검해줘"
+
+# Headless 모드 (CI/스크립트)
+activo --headless "analyze_all 해줘"
+
+# 프롬프트만 출력 후 종료
+activo --print "분석 요약해줘"
+
+# 이전 세션 이어서
+activo --resume
 ```
 
-또는 소스에서 설치:
+## 설정
 
-```bash
-git clone https://github.com/tcsenpai/ollama-code.git
-cd activo-code
-npm install
-npm install -g .
-```
+설정 파일: `~/.activo/config.json` (전역), `.activo/config.json` (프로젝트별)
 
-### Ollama 서버 설정
-
-1. **Ollama 설치** (아직 설치하지 않은 경우):
-   ```bash
-   curl -fsSL https://ollama.com/install.sh | sh
-   ```
-
-2. **코딩 모델 다운로드**:
-   ```bash
-   ollama pull qwen2.5-coder:14b  # 코드 작업에 권장
-   # 또는
-   ollama pull codellama:13b      # 대체 코딩 모델
-   # 또는
-   ollama pull llama3.1:8b        # 더 작고 빠른 옵션
-   ```
-
-3. **Ollama 서버 시작**:
-   ```bash
-   ollama serve
-   ```
-
-### 설정
-
-Ollama 연결 구성 (도구는 기본적으로 로컬 Ollama를 자동 감지합니다):
-
-```bash
-# 선택사항: 커스텀 Ollama 서버
-export OLLAMA_BASE_URL="http://localhost:11434/v1"
-export OLLAMA_MODEL="qwen2.5-coder:14b"
-
-# 또는 ~/.config/activo-code/config.json 생성:
+```json
 {
-  "baseUrl": "http://localhost:11434/v1",
-  "model": "qwen2.5-coder:14b"
+  "ollama": {
+    "baseUrl": "http://localhost:11434",
+    "model": "mistral:latest",
+    "contextLength": 8192,
+    "keepAlive": 1800
+  },
+  "standards": {
+    "directory": ".activo/standards"
+  },
+  "mcp": {
+    "servers": {
+      "my-server": {
+        "command": "npx",
+        "args": ["-y", "my-mcp-server"],
+        "env": {}
+      }
+    }
+  }
 }
 ```
 
-## 사용 예제
+| 옵션 | 설명 | 기본값 |
+|------|------|--------|
+| `ollama.baseUrl` | Ollama API URL | `http://localhost:11434` |
+| `ollama.model` | 사용할 모델 | `mistral:latest` |
+| `ollama.contextLength` | 컨텍스트 길이 | `8192` |
+| `ollama.keepAlive` | 모델 유지 시간(초) | `1800` |
 
-### 코드베이스 탐색
+## 프로젝트 데이터
 
-```sh
-cd your-project/
-activo-code
-> 이 시스템 아키텍처의 주요 구성 요소를 설명해줘
+분석 시 프로젝트 루트에 `.activo/` 디렉토리가 생성됩니다.
+
+| 경로 | 용도 |
+|------|------|
+| `.activo/cache/` | 파일 요약 캐시 |
+| `.activo/embeddings/` | 코드 임베딩 인덱스 |
+| `.activo/memory/` | 프로젝트 메모리·대화 요약 |
+| `.activo/standards-rag/` | 표준 문서 RAG (HWP/PDF import 후) |
+
+## MCP 연동
+
+`~/.activo/config.json`의 `mcp.servers`에 MCP 서버를 등록하면 activo가 해당 도구를 자동으로 사용할 수 있습니다.
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"]
+      }
+    }
+  }
+}
 ```
 
-### 코드 개발
+## 함께 사용하기
 
-```sh
-> 이 함수를 가독성과 성능을 향상시키도록 리팩토링해줘
-```
+activo는 단독으로도 품질 점검 도구로 충분합니다. 다만 **규칙 고정·배치 검사·Excel 리포트**가 필요한 경우 [Code Quality Checker (CQC)](https://github.com/mhb8436/code-quality-checker)와 함께 쓰면 효과적입니다.
 
-### 워크플로우 자동화
+| 용도 | activo | CQC |
+|------|--------|-----|
+| 대화형 분석·설명 | ◎ | - |
+| 개발표준 RAG 검사 | ◎ | - |
+| 고정 규칙 배치 검사 | - | ◎ |
+| Excel 제출용 리포트 | - | ◎ |
+| 오프라인 단일 바이너리 | - | ◎ |
 
-```sh
-> 지난 7일간의 git 커밋을 기능과 팀원별로 분석해줘
-```
+activo로 개발표준 PDF를 MD로 변환·RAG 인덱싱한 뒤 점검하고, CQC로 조직 룰셋을 YAML로 정의해 CI·감사에 사용하는 구성이 가능합니다.
 
-```sh
-> 이 디렉토리의 모든 이미지를 PNG 형식으로 변환해줘
-```
+## 기술 스택
 
-## 인기 작업
-
-### 새로운 코드베이스 이해하기
-
-```text
-> 핵심 비즈니스 로직 컴포넌트는 무엇인가요?
-> 어떤 보안 메커니즘이 적용되어 있나요?
-> 데이터 흐름은 어떻게 작동하나요?
-```
-
-### 코드 리팩토링 & 최적화
-
-```text
-> 이 모듈에서 최적화할 수 있는 부분은 무엇인가요?
-> 이 클래스를 더 나은 디자인 패턴을 따르도록 리팩토링해주세요
-> 적절한 에러 처리와 로깅을 추가해주세요
-```
-
-### 문서화 & 테스팅
-
-```text
-> 이 함수에 대한 포괄적인 JSDoc 주석을 생성해주세요
-> 이 컴포넌트에 대한 단위 테스트를 작성해주세요
-> API 문서를 생성해주세요
-```
-
-## 권장 모델
-
-코딩 작업에 최적의 결과를 위해:
-
-| 모델 | 크기 | 최적 용도 | 품질 | 속도 |
-|-------|------|----------|---------|-------|
-| `qwen2.5-coder:14b` | 14B | 코드 생성, 리팩토링 | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| `codellama:13b` | 13B | 코드 완성, 디버깅 | ⭐⭐⭐ | ⭐⭐⭐ |
-| `llama3.1:8b` | 8B | 일반 코딩, 빠른 응답 | ⭐⭐ | ⭐⭐⭐⭐ |
-| `qwen2.5-coder:32b` | 32B | 복잡한 추론, 최고 품질 | ⭐⭐⭐⭐⭐ | ⭐⭐ |
-
-## 프로젝트 구조
-
-```
-activo-code/
-├── packages/           # 핵심 패키지
-├── docs/              # 문서
-├── examples/          # 예제 코드
-└── tests/            # 테스트 파일
-```
-
-상세한 아키텍처 개요는 [ARCHITECTURE_KO.md](./ARCHITECTURE_KO.md)를 참조하세요.
-
-## 개발 & 기여
-
-프로젝트 기여 방법을 배우려면 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참조하세요.
-
-## 프라이버시 & 보안
-
-- **로컬 처리**: 모든 AI 계산은 Ollama 서버에서 발생
-- **텔레메트리 없음**: 외부로 사용 데이터 전송 안 함
-- **코드 격리**: 소스 코드가 환경 밖으로 나가지 않음
-- **감사 추적**: 모든 AI 상호작용에 대한 완전한 가시성
-
-## 문제 해결
-
-문제가 발생하면 [문제 해결 가이드](docs/troubleshooting.md)를 확인하세요.
-
-일반적인 문제:
-- **연결 거부됨**: Ollama가 실행 중인지 확인 (`ollama serve`)
-- **모델을 찾을 수 없음**: 먼저 모델을 다운로드 (`ollama pull model-name`)
-- **느린 응답**: 더 작은 모델 사용 또는 하드웨어 업그레이드 고려
-
-## 감사의 말
-
-이 프로젝트는 [**Qwen Code**](https://github.com/QwenLM/qwen-code)에서 포크되었으며, 원래 [Google Gemini CLI](https://github.com/google-gemini/gemini-cli)를 기반으로 합니다. 두 팀의 훌륭한 작업에 감사하고 인정합니다. 우리의 기여는 Ollama를 통한 프라이버시 우선 로컬 모델 통합에 중점을 둡니다.
+- **Ollama** - 로컬 LLM
+- **TypeScript Compiler API** - JS/TS AST 분석
+- **java-ast** - Java 파싱 (ANTLR4)
+- **React Ink** - 터미널 UI
 
 ## 라이선스
 
-[LICENSE](./LICENSE)
+MIT
